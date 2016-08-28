@@ -49,7 +49,7 @@ IAPPS=connd ftp tcpipstat tcpip ppp loop slip httpd telnet popclient
 .PHONY : all apps kernel libstd help package clean distclean devel
 
 # shouldn't we use $(CURDIR) instead of $(PWD) ???
-export PATH+=:$(PWD)/devel_utils/:$(PWD)/devel_utils/$(MACHINE):.
+export PATH+=:$(PWD)/devel_utils/:$(PWD)/devel_utils/$(MACHINE):.:/bin
 export LUPO_INCLUDEPATH=:$(PWD)/kernel:$(PWD)/include
 export LNG_LIBRARIES=$(PWD)/lib/libstd.a
 export COMPFLAGS
