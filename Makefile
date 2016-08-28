@@ -151,13 +151,15 @@ oricpackage: oricdisc
 # give full path
 oricdisc: binaries
 	echo "test test"> $(BINDIR)/test.txt
-	devel_utils/$(MACHINE)/bin2tap -c -n lunix $(BINDIR)/lunix.$(MACHINE) \
-		-a -n lboot $(BINDIR)/boot.$(MACHINE) \
+#	devel_utils/$(MACHINE)/bin2tap -c -n lunix $(BINDIR)/lunix.$(MACHINE) \
+		 -n lboot $(BINDIR)/boot.$(MACHINE) \
 		$(BINDIR)/lunix.tap
+	devel_utils/$(MACHINE)/bin2tap -c -n lunix $(BINDIR)/lunix.$(MACHINE) $(BINDIR)/lunix.tap
+	devel_utils/$(MACHINE)/bin2tap -c -n lboot $(BINDIR)/boot.$(MACHINE) $(BINDIR)/lboot.tap
 #		-s 0 -n test $(BINDIR)/test.txt 
 	rm -f $(BINDIR)/lunix.dsk
-	devel_utils/$(MACHINE)/tap2dsk $(BINDIR)/lunix.tap $(BINDIR)/lunix.dsk
-	devel_utils/$(MACHINE)/old2mfm $(BINDIR)/lunix.dsk
+	devel_utils/$(MACHINE)/tap2dsk $(BINDIR)/lunix.tap $(BINDIR)/lboot.tap $(BINDIR)/lunix.dsk
+#	devel_utils/$(MACHINE)/old2mfm_osdk $(BINDIR)/lunix.dsk
 
 c64disc c128disc: cbmdisc
 c64package c128package: cbmpackage

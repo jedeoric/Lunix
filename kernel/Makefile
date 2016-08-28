@@ -114,7 +114,8 @@ $(BOOT) : $(BOOTOBJ)
 modules : $(MODULES)
 
 lng_kfunc.txt : *.s
-	relate $+ > $@
+	#relate $+ > $@
+	echo FIXME LNG_KFUNC.TXT RELATE disables
 
 clean :
 	$(RM) *.o

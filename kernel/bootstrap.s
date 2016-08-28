@@ -362,12 +362,23 @@ noide64_txt:	.text "Kernel panic: IDE64 not detected",$0a
 		cli
 	-	jmp  -					; fade away (should not be reached)
 
+	
+#ifdef ORIC	
+welcome_txt:
+		.byte $0a
+		.text "Orix V0.22",$0a
+		.text __DATE__,$0a,$0a
+		.text "Compile time options:",$0a
+		
+#else
 welcome_txt:
 		.byte $0a
 		.text "Welcome to LUnix next generation (LNG)",$0a
 		.text "Version 0.22, "
 		.text __DATE__,$0a,$0a
 		.text "Compile time options:",$0a
+		
+#endif		
 #ifdef VERBOSE_ERROR
 		.text "  - verbose error messages",$0a
 #endif
@@ -383,9 +394,13 @@ welcome_txt:
 #ifdef ANTIC_CONSOLE
 		.text "  - ANTIC/GTIA console",$0a
 #endif
+
 #ifdef ORIC_CONSOLE
-		.text "  - ORIC console",$0a
+#ifdef VERBOSE_ERROR
+		.text "  - Orix console",$0a
 #endif
+#endif
+
 #ifdef MULTIPLE_CONSOLES
 		.text "  - multiple consoles",$0a
 #endif

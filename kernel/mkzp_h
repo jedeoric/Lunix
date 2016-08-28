@@ -14,6 +14,7 @@ touch ../include/zp.h
 
 for FILE in $*
 do 
+  echo "Parsing $FILE ... "
   lupo -rq $FILE -o tmp.s
   grep -h "ZEROpage:" tmp.s >> zpreq.txt
 done
