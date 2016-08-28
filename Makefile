@@ -45,7 +45,7 @@ IAPPS=connd ftp tcpipstat tcpip ppp loop slip httpd telnet popclient
 
 .PHONY : all apps kernel libstd help package clean distclean devel
 
-export PATH+=:$(PWD)/devel_utils/:$(PWD)/devel_utils/atari:.
+export PATH+=:$(PWD)/devel_utils/:$(PWD)/devel_utils/atari:.:/bin/
 export LUPO_INCLUDEPATH=:$(PWD)/kernel:$(PWD)/include
 export LNG_LIBRARIES=$(PWD)/lib/libstd.a
 export COMPFLAGS
