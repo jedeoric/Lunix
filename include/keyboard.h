@@ -17,8 +17,15 @@
 #define joy_fire    %00010000
 
 #define keybuflen 16      ; size of keyboard buffer
+#ifdef HAVE_CIA
 #define	port_row CIA1_PRA ; selection of rows
 #define	port_col CIA1_PRB ; status of columns
+#endif
+#ifdef HAVE_VIA
+;// not even exactly... ORIC has a braindead keyb port
+#define	port_row VIA1_ORA ; selection of rows
+#define	port_col VIA1_ORB ; status of columns
+#endif
 
 #ifdef C128
 # define port_row2 VIC_KEYREG

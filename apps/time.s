@@ -77,11 +77,13 @@ set_time:
 		ldy  bufSEC
 		;; FIXME -> move into kernel or system dependent library
 		sei
+#ifdef HAVE_CIA
 		sta  CIA1_TODHR
 		stx  CIA1_TODMIN
 		sty  CIA1_TODSEC
 		lda  #0
 		sta  CIA1_TOD10
+#endif
 		cli
 		rts
 
@@ -92,11 +94,13 @@ get_time:
 		;; FIXME
 		;; shouldn't this be in the kernel ?? (direct access to CIA1)
 		sei
+#ifdef HAVE_CIA
 		lda  CIA1_TODHR			; (reading TODHR makes the CIA latch the
 		sta  bufHR				; current time)
 		ldy  CIA1_TODMIN
 		ldx  CIA1_TODSEC
 		lda  CIA1_TOD10
+#endif
 		cli
 		sty  bufMIN
 		stx  bufSEC

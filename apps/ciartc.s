@@ -110,6 +110,7 @@ module_struct:
 
 update_date:
 		;; copy cia_tod to time
+#ifdef HAVE_CIA
 		lda	CIA1_TODHR		; latch time
 		sta	hour
 		ldx	CIA1_TODMIN
@@ -118,6 +119,7 @@ update_date:
 		stx	second
 		ldx	CIA1_TOD10		; free latch
 		stx	sec10
+#endif
 		;; convert from 01-12am/pm to 00-23
 		and	#$7f
 		cmp	#$12
@@ -217,6 +219,7 @@ write_time:
 		eor	#$80	; cia inverts am/pm on write when hour==12
 	+	sty	ampmhour
 		;; write time to cia_tod
+#ifdef HAVE_CIA
 		sta	CIA1_TODHR	; stop clock
 		ldx	minute
 		stx	CIA1_TODMIN
@@ -224,6 +227,7 @@ write_time:
 		stx	CIA1_TODSEC
 		ldx	sec10
 		stx	CIA1_TOD10	; continue clock
+#endif
 		;; reset ntp
 		lda	li_vn_mode
 		ora	#%11000000	; not synchronized

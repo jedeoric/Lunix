@@ -90,7 +90,11 @@
  * Standard include files
  */
 #include <stdio.h>
+#if defined(__BEOS__)
+#include <termios.h>
+#else
 #include <termio.h>
+#endif
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>

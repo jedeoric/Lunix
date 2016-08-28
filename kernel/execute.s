@@ -88,7 +88,8 @@ forkto:
 		cmp #>LNG_MAGIC           ; $fffe
 		bne _o65_load
 		cpx #<LNG_MAGIC
-		beq _lng_load
+		bne _o65_load
+		jmp _lng_load
 
 _o65_load:
 		cmp #<O65_MAGIC           ; $0001
@@ -102,8 +103,9 @@ _o65_load:
 
 		ldx syszp+7		; fd
 		jsr loado65
-		bcc +
-		tay
+		bcs +
+		jmp _o65_run
+	+	tay
 		jmp _o65_error		; (pla 3 times)
 
 		;;
@@ -163,11 +165,12 @@ __sfget:
 
 		rts
 
+	-	jmp _not_script
 script_run:
    		cmp #"#"
-		bne _not_script
+		bne -
 		cpx #"!"
-		bne _not_script
+		bne -
 
 		;; init stackframe
 
@@ -302,6 +305,7 @@ _not_script:
 		;;---- end script runner
 		;;
 
+_o65_run:
 	+	;; A/Y is address of start, 3 bytes on stack
 		;; is (main) is not == (load) this needs to be changed!!!
 

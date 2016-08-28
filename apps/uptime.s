@@ -37,11 +37,13 @@
 		;; FIXME
 		;; shouldn't this be in the kernel ?? (direct access to CIA2)
 		sei
+#ifdef HAVE_CIA
 		lda  CIA2_TODHR			; (reading TODHR makes the CIA latch the
 		sta  bufHR				; current time)
 		ldy  CIA2_TODMIN
 		ldx  CIA2_TODSEC
 		lda  CIA2_TOD10
+#endif
 		cli
 		sty  bufMIN
 		stx  bufSEC

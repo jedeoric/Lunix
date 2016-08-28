@@ -1,0 +1,14 @@
+ORIC specific build tools:
+
+bin2tap: converts raw binary (and c64 format) to tape files.
+(c) Francois Revol, revol@free.fr
+I later found similar code but they didn't have the c64 
+support for luna files anyway.
+
+tap2dsk: creates a floppy image from tape files.
+(c) F.Frances 2004
+
+old2mfm: converts plain logical disk image to widely used mfm-encoded images.
+unknown author.
+
+

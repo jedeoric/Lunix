@@ -1,0 +1,77 @@
+		;; leave LUnix (?) reboot system
+#include <oric.h>
+#include <system.h>
+
+reboot:	
+		sei						; disable irq
+		
+		;; make sure the ROM is mapped in
+		lda #MEMCONF_ROM
+		jsr oric_setmemconf
+		
+		;; reset vector
+		jmp ($fffc)
+
+		;; utility routines to switch between ROM and overlay
+oric_memconf:
+		.byte MEMCONF_OVL		; bootloader will do this
+.global	oric_getmemconf
+oric_getmemconf:
+		lda oric_memconf
+	-	rts
+oric_setmemconf:
+		cmp oric_memconf
+		beq -					;done already
+		pha						; backup
+#ifdef SUPPORT_TELESTRAT
+		; check telestrat first (its microdisc doesn't have the romdis bit)
+		lda lk_oric_arch
+		;and #loric_typemask
+		;cmp #loric_stratos
+		and #loric_stratos		; optimization
+		beq smc_not_tel
+		pla
+		cmp #MEMCONF_ROM
+		bne +
+		lda VIA2_ORA
+		ora #%00000111
+		sta VIA2_ORA
+		rts
+	+	lda VIA2_ORA
+		and #%11111000
+		sta VIA2_ORA
+		rts
+smc_not_tel:
+#endif
+		lda lk_oric_arch
+		and #loric_diskmask
+#ifdef SUPPORT_JASMIN
+		cmp #loric_jasmin
+		bne smc_not_j
+		pla
+		cmp #MEMCONF_ROM
+		beq +
+		lda #%00000001
+		jmp ++
+	+	lda #0
+	+	sta JASMIN_OVERLAY
+		sta JASMIN_ROMDIS
+		rts
+smc_not_j:
+#endif
+#ifdef SUPPORT_MICRODISC
+		cmp #loric_mdisc
+		bne smc_not_md
+		pla
+		cmp #MEMCONF_ROM
+		beq +
+		lda #%10000000
+		jmp ++
+	+	lda #%00000010
+	+	sta MICRODISC_CONTROL
+		rts
+smc_not_md:
+#endif
+		pla
+		rts
+		

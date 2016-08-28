@@ -27,6 +27,12 @@
 # define debug3       $420  	    ; upper left corner of the screen
 #endif
 
+#ifdef ORIC
+# define debug1       $BB80        ; foreground color
+# define debug2       $BB80	   ; background color
+# define debug3       $BB80	   ; upper left corner of the screen
+#endif
+
 #ifdef DEBUG
 # begindef db(textstring)
 	php

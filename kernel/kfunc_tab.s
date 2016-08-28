@@ -1,5 +1,7 @@
 	.global	kfunc_tab
 
+#include <config.h>
+
 kfunc_tab:
 	.word set_zpsize
 	.word get_moduleif
@@ -70,4 +72,8 @@ kfunc_tab:
 	.word srandom
 	.word getenv
 	.word setenv
+#ifdef HAVE_O65
 	.word loado65
+#else
+	.word panic
+#endif

@@ -4,7 +4,7 @@
 
 ;// LNG-magic and version
 #define LNG_MAGIC   $fffe
-#define LNG_VERSION $0015   ;// in decimal => 0, 21
+#define LNG_VERSION $0016   ;// in decimal => 0, 22
 
 ;// O65 file format version
 #define O65_MAGIC    $0001
@@ -134,14 +134,18 @@
 #define lk_modroot   $ffed    ;// root of linked list of modules (16bit)
 #define lk_consmax   $ffef    ;// absolute number of consoles
 #define lk_archtype  $fff0    ;// machine architecture
-#  define larchf_type     %00000011 ;// type of machine
+#  define larchf_type     %00000111 ;// type of machine
 #   define larch_c64       0
 #   define larch_c128      1
-#   define larch_atari     2
+#   define larch_apple     2
+#   define larch_atari     3
+#   define larch_oric      4
 #  define larchf_8500     %00010000 ;// flag for 85xx (not 65xx) CPU
 #  define larchf_pal      %00100000 ;// flag for PAL (not NTSC) video hardware
 #  define larchf_reu      %01000000 ;// flag for available REU hardware
 #  define larchf_scpu     %10000000 ;// flag for available SCPU hardware
+#define lk_archmodel $fff1    ;// machine-specific model identification
+#define lk_archconf  $fff2    ;// machine-specific configuration flags (options)
 
 ;// this is not implemented, hence nonused
 #define lk_timedive  $c2c0    ;// exponent of time dic

@@ -1,0 +1,4 @@
+To run LUnix on ORIC, currently you must load it from tape:
+
+CLOAD "LUNIX"
+CLOAD "LBOOT"

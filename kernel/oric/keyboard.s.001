@@ -1,0 +1,380 @@
+;
+; Atmos keyboard handler
+; Maciej 'YTM/Elysium' Witkowiak <ytm@elysium.pl>
+; 25.12.2000, 04.03.2003
+;
+
+; - check keyboard maps & update for all extended functions & characters like `
+; - OPTION=alt, START=ex1, SELECT=ex2, HELP=ex3, CAPS
+
+btab2i:		.byte $fe, $fd, $fb, $f7, $ef, $df, $bf, $7f
+
+		;; table for $e? keys
+locktab:	.byte keyb_ctrl, keyb_lshift|keyb_rshift, keyb_caps, keyb_ex3
+
+		;; UNIX (ascii) decoding tables
+
+#define dunno $7f
+#define none_c		dunno
+; other defines for special characters in tables below (later)
+; internal codes $81-84 - cursors, $df/$f0 console toggle (prev/next), $f1-$f7 - goto console
+; $e0-$ef internal flags for altflag toggle, $f8-$ff is reserved to maintain code similarity
+; to c64 keyboard
+#define ctrl_c		$e0		; internal code -> keyb_ctrl
+#define shift_c		$e1		; internal code -> keyb_shift
+#define caps_c		$e2		; internal code -> keyb_caps
+#define help_c		$e3		; internal code -> keyb_ex3
+#define option_c	$e4		; internal code -> keyb_alt	; not used, handled below
+#define start_c		$e5		; internal code -> keyb_ex1	; not used, handled below
+#define select_c	$e6		; internal code -> keyb_ex2	; not used, handled below
+#define break_c		$03		; break is equal to CTRL+C
+#define esc_c		$1b
+#define return_c	$0a
+#define space_c		$20
+#define bkspc_c		$08
+#define tab_c		$09
+#define inv_c		dunno
+#define shelp_c		dunno
+#define sesc_c		dunno
+#define sreturn_c	dunno
+#define sspace_c	dunno
+#define clear_c		dunno
+#define insert_c	dunno
+#define del_c		$08
+#define stab_c		dunno
+#define sinv_c		dunno
+#define scaps_c		dunno
+#define backslash_c	"\\"
+
+#define csr_up_c	$81		; internal code -> cursor up
+#define csr_down_c	$82		; down
+#define csr_left_c	$83		; left
+#define csr_right_c	$84		; right
+
+;	.byte "L", "J", ";", $03, $04, "K", "+", "*"
+;	.byte "O", $09, "P", "U", return_c, "I", "-", "="
+;	.byte "V", help_c, "C", $03, $04, "B", "X", "Z"
+;	.byte "4", $09, "3", "6", esc_c, "5", "2", "1"
+;	.byte ",", space_c, ".", "N", $04, "M", "/", caps_c
+;	.byte "R", $09, "E", "Y", tab_c, "T", "W", "Q"
+;	.byte "9", $01, "0", "7", bkspc_c, "8", "<", ">"
+;	.byte "F", "H", "D", $0b, caps_c, "G", "S", "A"
+
+_keytab_normal:
+	.byte $6c, $6a, ";", none_c, none_c, $6b, "+", "*"
+	.byte $6f, none_c, $70, $75, return_c, $69, "-", "="
+	.byte $76, help_c, $63, none_c, none_c, $62, $78, $7a
+	.byte "4", none_c, "3", "6", esc_c, "5", "2", "1"
+	.byte ",", space_c, ".", $6e, none_c, $6d, "/", inv_c
+	.byte $72, none_c, $65, $79, tab_c, $74, $77, $71
+	.byte "9", none_c, "0", "7", bkspc_c, "8", "<", ">"
+	.byte $66, $68, $64, none_c, caps_c, $67, $73, $61
+_keytab_shift:
+	.byte $4c, $4a, ":", none_c, none_c, $4b, backslash_c, "^"
+	.byte $4f, none_c, $50, $55, sreturn_c, $49, "_", "|"
+	.byte $56, shelp_c, $43, none_c, none_c, $42, $58, $5a
+	.byte "$", none_c, "#", "&", sesc_c, "%", $22, "!"
+	.byte "[", sspace_c, "]", $4e, none_c, $4d, "?", sinv_c
+	.byte $52, none_c, $45, $59, stab_c, $54, $57, $51
+	.byte "(", none_c, ")", "'", del_c, "@", clear_c, insert_c
+	.byte $46, $48, $44, none_c, scaps_c, $47, $53, $41
+;_keytab_control:
+;	.byte $0c, $0a, ";", none_c, none_c, $0b, csr_left_c, csr_right_c
+;	.byte $0f, none_c, $10, $15, return_c, $09, csr_up_c, csr_down_c
+;	.byte $16, help_c, $03, none_c, none_c, $02, $18, $1a
+;	.byte "4", none_c, "3", "6", esc_c, "5", "2", "1"
+;	.byte ",", space_c, ".", $0e, none_c, $0d, "/", inv_c
+;	.byte $12, none_c, $05, $19, tab_c, $14, $17, $11
+;	.byte "9", none_c, "0", "7", bkspc_c, "8", "<", ">"
+;	.byte $06, $08, $04, none_c, caps_c, $07, $13, $01
+
+; console (START+OPTION) modifiers - 'lock' keys
+_cons_toggle:	; none, START, OPTION, START+OPTION
+		.byte	0, keyb_ex1, keyb_ex2, keyb_ex1|keyb_ex2
+
+; to speedup trigger translation
+_trig_toggle:
+		.byte	%11100000, %11110000
+
+lastcons:	.byte 0
+colmask:	.byte $fe	; column bitmask (1st col)
+;;; ZEROpage: done 8
+;;; ZEROpage: last 8
+;done:			.buf 8			; map of done keys
+;last:			.buf 8			; map as it was scanned the last time
+
+;;; ZEROpage: keycode 1
+;keycode:		.buf 1			; keycode (equal to $cb in C64 ROM)
+
+flag:			.byte 0			; must be zero at startup
+
+
+		;; to save the time this is called only on timer IRQ
+.global joys_scan
+
+joys_scan:
+		; no joystick yet
+		rts
+#if 0
+		;; joystick scanning, return the same values as C64
+		;; (combine with trigger)
+		lda GTIA_TRIG0
+		and #%00000001
+		tax
+		lda PIA_PORTA
+		pha
+		and #%00001111
+		ora _trig_toggle,x
+		sta joy0result
+
+		lda GTIA_TRIG1
+		and #%00000001
+		tax
+		pla
+		lsr a
+		lsr a
+		lsr a
+		lsr a
+		ora _trig_toggle,x
+		sta joy1result
+
+		;; console keys don't do keyboard IRQ and we must know their state
+		lda GTIA_CONSOL
+		cmp lastcons
+		bne +				; something new!
+		rts
+	+	sta lastcons
+		and #%00000111
+		eor #%00000111
+		pha
+		and #%00000011			; only START+SELECT
+		beq +				; none pressed?
+		tax
+		lda altflags
+		eor _cons_toggle,x
+		sta altflags
+
+	+	pla
+		and #%00000100			; OPTION is alt, no toggle but state driven
+		beq +
+		lda altflags			; set
+		ora #keyb_alt
+		bne ++
+	+	lda altflags			; clear
+		and #~keyb_alt
+	+	sta altflags
+		rts
+#endif
+
+;_keybdbg:
+;		.text "got IRQ!"
+;		.bytes $0a,$00
+keyb_scan:
+		;; keyboard scanning begins here
+		
+		;;DEBUG
+;		ldx #0
+;	-	lda  _keybdbg,x
+;		beq  +
+;		jsr  printk
+;		inx
+;		bne  -
+;	+	rts
+
+		lda #"K"
+		sta $bb80+40+31
+		;rts
+
+		;; changing the row is way simpler than changing the col,
+		;; so we'll shift the column once every interrupt,
+		;; and scan all 8 rows for that col.
+		;; that should be enough for a start
+		
+		;; check each row
+		ldx colmask
+		ldy #7
+		lda VIA1_ORB
+		ora #$07					; set last 3 bits
+		sta VIA1_ORB
+	-	lda VIA1_ORB
+		and #$08					; is the key pressed ?
+		beq +						; no
+	lda $bb80+40+34
+	eor #$80
+	sta $bb80+40+34
+		txa						; yes: set the bit in the done tab
+		eor #$ff
+		ora done,y
+		sta done,y
+		
+	+	dey
+		bmi +
+		dec VIA1_ORB
+		jmp -
+	+	
+		cmp #8
+		inc VIA1_ORB
+		lda #0
+		
+		
+		;; shift the column
+		lda colmask
+		rol a
+		bcs +					; 
+		lda #$ff					; set bit0 to 1 so it'll change to 0
+	+	eor #$01				; set bit0 to 1 if it wasn't
+		tax
+		lda #$0e				; register 14 of PSG
+		sta VIA1_ORA_NH
+		lda #$ff				; ??
+		sta VIA1_PCR
+		ldy #$dd				; ??
+		sty VIA1_PCR
+		stx VIA1_ORA_NH
+		lda #$fd
+		sta VIA1_PCR
+		stx colmask
+		txa
+		cmp #$fe
+		bne done_keyb
+		
+		;; check keypresses
+		
+		
+		
+		
+		;; move done to last
+		ldy #7
+		lda #0
+	-	lda done,y
+		sta last,y
+		stx done,y
+		dey
+		bpl -					; clear maps
+
+		
+done_keyb:
+		
+	lda $bb80+40+35
+	eor #$80
+	sta $bb80+40+35
+;	lda #"h"
+;	bne _addkey
+;	rts
+
+		; x = line nr
+		; y = keycode (=line * 8 + bit_offset)
+		lda #0
+		tax
+		tay
+_keyscan_main:
+	+ -	lda  port_col
+		cmp  port_col
+		bne  -
+	+	pha						; remember line-pattern
+		and  last,x				; add last time result
+		pha						; remember this too
+		and  done,x				; clear done keys, that are released
+		eor  done,x
+		sta  done,x
+		pla
+		ora  done,x				; remove old keys (that are pressed before)
+		eor  #$ff
+		beq  contnxtline		; no key left, then continue with next line
+
+	-	lsr  a
+		bcc  contnxtbit			; not pressed
+		pha						; found pressed key
+		lda  _keytab_normal,y
+		cmp  #$f8				; some keys are treated more equal !!
+		bcc  +
+		eor  #$ff
+		ora  altflags
+		sta  altflags			; altflags contains pattern of shift,commo,..
+		bit  flag				; (be sure, flag doesn't stay $ff)
+		bpl  ++
+		lda  #$40
+		sta  flag				; if flag is null, set it to none
+		jmp  ++
+
+	+	sty  keycode			; remember key if it is not shift or commo
+	+	pla
+		beq  contnxtline
+
+contnxtbit:		
+		iny
+		bne  -					; loop should not be left this way
+		;; jsr  panic				; (just for debugging :)
+
+contnxtline:	
+		pla						; line is completed
+		sta  last,x				; remember result of scan
+
+		inx
+#ifndef C128
+		cpx  #8					; next line
+#else
+		cpx  #11
+#endif
+		beq  +					; all done !
+
+		tya					; increase keycounter to next lines base
+		and  #$f8
+		clc
+		adc  #8
+
+		tay
+		jmp  _keyscan_main
+
+	+	lda  #$ff
+		sta  port_row				; reset port_row
+#ifdef C128
+		sta port_row2
+#endif
+		lda  port_row
+		and  port_col
+		cmp  #$ff				; disturbed by joystick ?
+		beq  +					; shit, then throw it all away
+	-	rts
+
+	+	lda  keycode				; look at what we've found
+#ifndef C128
+		cmp  #$40
+#else
+		cmp  #(64+24)
+#endif
+		bcs  -					; nothing ? So lets leave!
+		sta  flag
+		lsr  a
+		lsr  a
+		lsr  a
+		tax
+		lda  keycode
+		and  #7
+		tay
+		lda  btab2i,y
+		eor  #$ff
+		ora  done,x				; mark this key, to ignore it next time
+		sta  done,x
+
+		; queue key into keybuffer
+		;; machine-dependent code returns with keycode offset in X register
+		ldx  keycode
+
+		;;DEBUG
+;		lda #"K"
+;		jsr printk
+;		lda #":"
+;		jsr printk
+;		txa
+;		jsr hexout
+;		lda #"\n"
+;		jsr printk
+;		rts
+
+	lda $bb80+40+31
+	eor #$80
+	sta $bb80+40+31
+
+
+		;; machine-dependent code returns with keycode in X register

@@ -48,5 +48,20 @@
 #  define size_y	24
 #  define MAX_CONSOLES		1
 #endif
+#ifdef ORIC_CONSOLE
+;// defines for ORIC console
+#  define ORIC_FONT	ULA_TEXT_STDCHR
+#  define SCREEN_BASE	ULA_TEXT_BASE
+#  define SCREEN_SIZE	1120	; 40*28
+; this can't work, kernel stores mem allocator data at $c000!
+; need to allocate that elsewhere.
+; what about another RAM bank in telestrat ?
+;#  define SCREEN_VIRT_BASE	$c000	; eat virtual console buffers from overlay ram
+#  define cursor	$a0				; $20 (space) + $80 (inverted)
+#  define size_x	40
+#  define size_y	28
+#  define MAX_CONSOLES		1
+;#  define MAX_CONSOLES		4		; seems reasonable
+#endif
 
 #endif

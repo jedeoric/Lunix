@@ -92,3 +92,7 @@ dirty equ *+1
 #ifdef ANTIC_CONSOLE
 # include "opt/antic_console.s"
 #endif
+
+#ifdef ORIC_CONSOLE
+# include "opt/oric_console.s"
+#endif

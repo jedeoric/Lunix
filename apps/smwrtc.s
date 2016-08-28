@@ -101,6 +101,7 @@ module_struct:
 	;; read a byte from Smart Watch
 
 read_byte:
+#ifdef HAVE_CIA
 		lda	#%00001110		; config lsb as input
 		sta	CIA1_DDRA
 		lda	#0
@@ -117,12 +118,14 @@ read_byte:
 		sta	tmpzp+2
 		dex
 		bne	-
+#endif
 		rts
 
 	;; write_byte
 	;; write a byte to Smart Watch
 
 write_byte:
+#ifdef HAVE_CIA
 		tax				; save data byte
 		ldy	#8			; set up count
 		lda	#%00001100		; initial config output enable off
@@ -140,12 +143,14 @@ write_byte:
 		clv
 		bvc	-			; loop
 
+#endif
 	+	rts
 
 	;; select_smartwatch
 	;; write magic bytes to port to enable Smart Watch
 
 select_smartwatch:
+#ifdef HAVE_CIA
 		lda	#%00001110		; read cycle to start dallas chip
 		sta	CIA1_PRA
 		lda	#%00000010
@@ -164,6 +169,7 @@ select_smartwatch:
 		jsr	write_byte
 		dec	tmpzp+2
 		bne	-
+#endif
 		rts
 
 	;; update_date
@@ -171,6 +177,7 @@ select_smartwatch:
 	;; at this point irq must be disabled
 
 update_date:
+#ifdef HAVE_CIA
 		lda	CIA1_DDRA		; store cia1 registers
 		pha
 		lda	CIA1_PRA
@@ -219,6 +226,7 @@ update_date:
 		sta	CIA1_PRA
 		pla
 		sta	CIA1_DDRA
+#endif
 		rts
 
 	;; write_time
@@ -226,6 +234,7 @@ update_date:
 	;; irq must be disabled
 
 write_time:
+#ifdef HAVE_CIA
 		;; convert from 00-23 to 01-12am/pm
 		lda	hour
 		tax
@@ -282,6 +291,7 @@ write_time:
 		sta	CIA1_PRA
 		pla
 		sta	CIA1_DDRA
+#endif
 		rts
 
 ;;; api --------------------------------------------------------------------

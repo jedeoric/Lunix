@@ -19,4 +19,4 @@
 
 - lunixrc is only on disk image, not in package release
 
-- sh treats whitespace on the left side as part of the command name
+- for some reason cp needs full destination file path after PWD change

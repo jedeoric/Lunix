@@ -185,6 +185,10 @@ pprefix:
 		.text "net64"
 		.byte 0, MAJOR_IEC,15
 #endif
+#ifdef HAVE_EUPHORIC_TAPEFS
+		.text "vtape"
+		.byte 0, MAJOR_VTAPE,0
+#endif
 		.text "console"
 		.byte 0, MAJOR_CONSOLE,0
 		.text "pipe"
@@ -217,6 +221,9 @@ mtab_fopen equ [*]-2
 #else
 		.word err_notimp-1
 #endif
+#ifdef HAVE_EUPHORIC_TAPEFS
+		.word fs_oricvtape_fopen-1
+#endif
 
 mtab_fgetc equ [*]-2
 		.word fs_pipe_fgetc-1
@@ -228,6 +235,9 @@ mtab_fgetc equ [*]-2
 		.word fs_ide64_fgetc-1
 #else
 		.word err_notimp-1
+#endif
+#ifdef HAVE_EUPHORIC_TAPEFS
+		.word fs_oricvtape_fgetc-1
 #endif
 
 mtab_fputc equ [*]-2
@@ -241,6 +251,9 @@ mtab_fputc equ [*]-2
 #else
 		.word err_notimp-1
 #endif
+#ifdef HAVE_EUPHORIC_TAPEFS
+		.word err_notimp-1
+#endif
 
 mtab_fclose equ [*]-2
 		.word fs_pipe_fclose
@@ -251,7 +264,10 @@ mtab_fclose equ [*]-2
 #ifdef HAVE_IDE64
 		.word fs_ide64_fclose
 #else
-		.word err_notimp-1
+		.word err_notimp
+#endif
+#ifdef HAVE_EUPHORIC_TAPEFS
+		.word fs_oricvtape_fclose
 #endif
 
 mtab_fcmd equ [*]-2
@@ -263,6 +279,9 @@ mtab_fcmd equ [*]-2
 #ifdef HAVE_IDE64
 		.word fs_ide64_fcmd-1
 #else
+		.word err_notimp-1
+#endif
+#ifdef HAVE_EUPHORIC_TAPEFS
 		.word err_notimp-1
 #endif
 
@@ -277,6 +296,9 @@ mtab_fopendir equ [*]-2
 #else
 		.word err_notimp-1
 #endif
+#ifdef HAVE_EUPHORIC_TAPEFS
+		.word err_notimp-1
+#endif
 
 mtab_freaddir equ [*]-2
 		.word err_notimp-1		; fs_pipe
@@ -287,6 +309,9 @@ mtab_freaddir equ [*]-2
 #ifdef HAVE_IDE64
 		.word fs_ide64_freaddir-1
 #else
+		.word err_notimp-1
+#endif
+#ifdef HAVE_EUPHORIC_TAPEFS
 		.word err_notimp-1
 #endif
 

@@ -1,0 +1,24 @@
+LUnix NG port to ORIC
+Francois Revol <revol@free.fr>
+----
+
+Currently floppy isn't supported for file access, but is required to enable access to overlay RAM.
+
+CLOAD "LUNIX"
+CLOAD "LBOOT"
+
+How to build ?
+
+from a Unix/Linux/BeOS (cygwin ?) host:
+open a terminal here and type:
+
+make package
+
+This will build the luna assembler, the bin2tap tool, lunix kernel and loader, then the .tap file and zip them.
+
+bin2tap.c might need #include fixing (I only compiled it in BeOS yet)
+
+
+currently the loader is at $1000
+the kernel is at $2000
+

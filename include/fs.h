@@ -7,6 +7,7 @@
 #define MAJOR_USER    4
 #define MAJOR_IEC     5
 #define MAJOR_IDE64   6
+#define MAJOR_VTAPE   7
 
 #define fmode_ro  0
 #define fmode_wo  1
@@ -45,6 +46,8 @@
 #  define iecstatus_timeout       $20
 #define iecsmb_secadr 6
 #define iecsmb_dirstate 7
+//		$80 - opened stream is a directory, stream has been just opened
+//		$c0 - directory header has been skipped
 
 #define usersmb_ufunc 5
 #define fsuser_fgetc  1

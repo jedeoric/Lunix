@@ -243,18 +243,33 @@ print_hwtype:
 		cmp  #larch_c64
 		beq  hwc64
 		cmp  #larch_c128
+		beq hwc128
+		cmp  #larch_atari
+		beq hwatari
+		cmp  #larch_oric
 		bne  name_unknown
-
-		;; hwc128
+;hworic:
+		bit  txt_machtypeoric
+		jsr  lkf_strout
+		nop
+		jmp  hwfreq
+hwc64:
+		bit  txt_machtype64
+		jsr  lkf_strout
+		nop
+		jmp  hwfreq
+hwc128:
 		bit  txt_machtype128
 		jsr  lkf_strout
 		nop
-		jmp  +
-
-hwc64:	bit  txt_machtype64
+		jmp  hwfreq
+hwatari:
+		bit  txt_machtypeatari
 		jsr  lkf_strout
 		nop
-	+	lda  lk_archtype
+		;jmp  hwfreq
+hwfreq:
+		lda  lk_archtype
 		and  #larchf_pal
 		bne  hwpal
 		bit  txt_machtypentsc
@@ -321,6 +336,10 @@ txt_machtype64:
 		.text "C64",0
 txt_machtype128:
 		.text "C128",0
+txt_machtypeatari:
+		.text "Atari",0
+txt_machtypeoric:
+		.text "ORIC",0
 txt_machtypepal:
 		.text "pal ",0
 txt_machtypentsc:

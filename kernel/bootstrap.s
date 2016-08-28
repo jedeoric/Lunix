@@ -307,17 +307,17 @@ to_no_reu:
 		lda  $de60
 		cmp  $de60
 		bne  noide64
-		cmp  #$49			; "I"
+		cmp  #$49			; "I"
 		bne  noide64
 		lda  $de61
 		cmp  $de61
 		bne  noide64
-		cmp  #$44			; "D"
+		cmp  #$44			; "D"
 		bne  noide64
 		lda  $de62
 		cmp  $de62
 		bne  noide64
-		cmp  #$45			; "E"
+		cmp  #$45			; "E"
 		beq  ++				; found
 noide64:	ldx  #0
 	-	lda  noide64_txt,x
@@ -346,6 +346,9 @@ noide64_txt:	.text "Kernel panic: IDE64 not detected",$0a
 	+
 #endif
 
+		;; extra bootloader init stuff for drivers
+		#include <boot_extra.h>
+
 		;; spawn init task		
 		lda  #0
 		sta  userzp
@@ -362,7 +365,8 @@ noide64_txt:	.text "Kernel panic: IDE64 not detected",$0a
 welcome_txt:
 		.byte $0a
 		.text "Welcome to LUnix next generation (LNG)",$0a
-		.text "Version 0.21, 10 Sep 2004",$0a,$0a
+		.text "Version 0.22, "
+		.text __DATE__,$0a,$0a
 		.text "Compile time options:",$0a
 #ifdef VERBOSE_ERROR
 		.text "  - verbose error messages",$0a
@@ -378,6 +382,9 @@ welcome_txt:
 #endif
 #ifdef ANTIC_CONSOLE
 		.text "  - ANTIC/GTIA console",$0a
+#endif
+#ifdef ORIC_CONSOLE
+		.text "  - ORIC console",$0a
 #endif
 #ifdef MULTIPLE_CONSOLES
 		.text "  - multiple consoles",$0a
@@ -406,12 +413,26 @@ welcome_txt:
 ;#endif
 		.byte 0
 
-txt_c64:
+#ifdef C64
+txt_machine:
 		.text "Commodore 64",0
-txt_c128:
+#endif
+#ifdef C128
+txt_machine:
 		.text "Commodore 128",0
-txt_atari:
+#endif
+#ifdef APPLE
+txt_machine:
+		.text "Apple II",0
+#endif
+#ifdef ATARI
+txt_machine:
 		.text "Atari",0
+#endif
+#ifdef ORIC
+txt_machine:
+		.text "ORIC",0
+#endif
 txt_pal:
 		.text " (PAL)",0
 txt_ntsc:
@@ -422,38 +443,25 @@ txt_60hz:
 		.text " on 60Hz power",$0a,0
 
 print_machine_type:
-		lda  lk_archtype
-		and  #larchf_type
-		cmp  #larch_c64
-		beq  +
-		cmp  #larch_c128
-		beq  ++
-		cmp  #larch_atari
-		beq  +++
-		bne  ++++
-	+	ldy  #txt_c64-txt_c64
-		SKIP_WORD
-	+	ldy  #txt_c128-txt_c64
-		SKIP_WORD
-	+	ldy  #txt_atari-txt_c64
+		ldy  #txt_machine-txt_machine
 		jsr  mout
 
 	+	lda  lk_archtype
-		ldy  #txt_pal-txt_c64
+		ldy  #txt_pal-txt_machine
 		and  #larchf_pal
 		bne  +
-		ldy  #txt_ntsc-txt_c64
+		ldy  #txt_ntsc-txt_machine
 	+	jsr  mout
 #ifdef HAVE_CIA
 		lda  CIA1_CRA			; on c64 and c128
-		ldy  #txt_50hz-txt_c64
+		ldy  #txt_50hz-txt_machine
 		and  #%10000000
 		bne  mout
-		ldy  #txt_60hz-txt_c64
+		ldy  #txt_60hz-txt_machine
 #else
-		ldy  #txt_50hz-txt_c64
+		ldy  #txt_50hz-txt_machine
 #endif
-mout:		lda  txt_c64,y
+mout:		lda  txt_machine,y
 		beq  +
 		jsr  lkf_printk
 		iny
@@ -502,6 +510,7 @@ add_task_simple:
 		jmp  lkf_addtask
 #endif
 
+
 		;; include code that initialises
 		;; the keyboard and console
 		;; (this code should also set the value of lk_consmax)
@@ -517,6 +526,9 @@ add_task_simple:
 #endif
 #ifdef ANTIC_CONSOLE
 # include "opt/antic_console_init.s"
+#endif
+#ifdef ORIC_CONSOLE
+# include "opt/oric_console_init.s"
 #endif
 
 #ifdef PCAT_KEYB

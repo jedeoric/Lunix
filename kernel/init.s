@@ -84,7 +84,6 @@ tryboot:
 		jmp  load_and_execute2
 #endif
 
-report_error_2:
 report_error:
 		jsr  print_error
 
@@ -108,8 +107,10 @@ ploop:
 		cmp  #"l"
 		beq  load_and_execute
 		cmp  #"x"
-		beq  reboot
-
+		beq reboot
+#ifdef HAVE_EXTRA_INIT
+		jmp check_extra_init_cmd
+#endif
 		;; unknown command
 
 c_end:
@@ -120,6 +121,11 @@ c_end:
 		jmp  ploop
 
 #include MACHINE(reboot.s)
+
+		;; relative jump too long...
+report_error_2:
+		jmp report_error
+
 
 	-	iny
 		beq  c_end
@@ -292,10 +298,22 @@ appstruct2:
 		.buf  32-(3+3+8)
 #endif
 
+#ifdef HAVE_EXTRA_INIT
+check_extra_init_cmd:
+#include MACHINE(extrainit.s)
+		jmp c_end
+#endif
+
 ;;; strings
 
 pwd_default:	.text "PWD=/disk8",0
 startup_txt:	.text $0a,"Init v0.1",$0a,0
-error_txt:	.text "? (l)oad command / e(x)it+reboot",$0a,0
+error_txt:	.text "? (l)oad command / e(x)it+reboot"
+#ifdef HAVE_EXTRA_INIT
+		.text " / ",$0a
+#define WANT_INIT_CMD_STRING
+#include MACHINE(extrainit.s)
+#endif
+		.text $0a,0
 tmp_page:	.buf 1
 

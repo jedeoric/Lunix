@@ -156,6 +156,7 @@ rtc_ntp_reference: jmp	lkf_suicide
 
 		bit	irq_handler
 irq_handler:
+#ifdef HAVE_CIA
 		;; increment the jiffie conter
 		inc	duration
 		bne	+
@@ -253,6 +254,7 @@ dec_byte:	dey
 		sty	bytecount
 		ldx	#$01
 stx_bit:	stx	bitcount
+#endif
 return:		rts
 
 mark_invalid:	BLINK(1,0)
@@ -673,6 +675,7 @@ HowTo:		ldx	#stdout
 		rts
 		
 normal_mode:
+#ifdef HAVE_CIA
 		;; free memory used for commandline arguments
 		ldx	userzp+1
 		jsr	lkf_free	
@@ -713,6 +716,7 @@ normal_mode:
 		jsr	lkf_hook_irq
 		nop
 
+#endif
 		jmp	main
 
 end_of_code:
